@@ -1,2 +1,3 @@
 # databrarypy
-Interact with the Databrary.org API
+
+Python commands to interact with the Databrary.org API.
