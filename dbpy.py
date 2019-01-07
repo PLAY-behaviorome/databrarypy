@@ -302,5 +302,17 @@ def list_sessions_in_volume(vol_id = 1, vb = False):
 		print("Download failed with HTTP status " + r.status_code + "\n")
 		return('')
 
+#------------------------------------------------------------------------------
+def get_supported_file_types(vb = False):
+	"Extracts Databrary supported file types."
 
+	# Check parameters
+	if not(isinstance(vb, bool)):
+		print("vb must be Boolean")
+		return('')
+
+	c = assign_constants(vb = vb)
+	fts = c['format']
+	df = pandas.DataFrame.from_dict(fts)
+	return(df)
 
