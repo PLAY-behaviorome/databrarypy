@@ -36,17 +36,20 @@ def get_db_stats(type = "all", vb = False):
 
 #-----------------------------------------------------------------------------
 # login to Databrary
-def login_db(username, vb = False, stored_credentials = False, system_credentials = True):
+def login_db(username = '', vb = False, stored_credentials = False, system_credentials = True, return_resp = False):
 	"Log in to Databrary"
 
 	# Check parameters
+	if (not(isinstance(username, str))):
+		print("username must be a string.")
+		return('')		
 	if (not(isinstance(vb, bool))):
 		print("vb must be Boolean.")
 		return('')
-	if (not(isinstance(stored_credentials, str))):
+	if (not(isinstance(stored_credentials, bool))):
 		print("stored_credentials must be Boolean.")
 		return('')
-	if (not(isinstance(system_credentials, str))):
+	if (not(isinstance(system_credentials, bool))):
 		print("system_credentials must be Boolean.")
 		return('')
 
@@ -58,11 +61,11 @@ def login_db(username, vb = False, stored_credentials = False, system_credential
 	elif (system_credentials):
 		if (username == ''):
 			print("Please enter your Databrary user ID (email).")
-			username <- input(prompt="User ID: ")
+			username = input("User ID: ")
 		if (keyring.get_keyring() != ''):
 				kl = keyring.get_password("databrary", username)
 				if (kl != 'None'):
-					password = kl
+					pw = kl
 				else:
 					if (vb):
 						print("No password for user: ", username, "\n")
@@ -73,19 +76,21 @@ def login_db(username, vb = False, stored_credentials = False, system_credential
 				return('')
 	else:
 		# Get login credentials
-		username = input("Databrary user ID (email): ")
+		username = input("User ID: ")
 		pw = input("Password: ")
 
-		# Check login credentials
-		if (not(isinstance(username, str))):
-			print("Account ID must be a string.")
-			return('')
-		if (not(isinstance(pw, str))):
-			print("Password must be a string")
-			return('')
+	# Check login credentials
+	if (not(isinstance(username, str))):
+		print("username must be a string.")
+		return('')
+	if (not(isinstance(pw, str))):
+		print("Password must be a string")
+		return('')
 
 	# POST request
 	payload = {"email": username, "password": pw}
+	if (vb):
+		print("Sending GET request to ", login_url)
 	r = requests.post(login_url, data = payload)
 
 	if (r.status_code == 200):
@@ -94,3 +99,38 @@ def login_db(username, vb = False, stored_credentials = False, system_credential
 		  return(r.text)
 	else:
 		print("Log in failed with HTTP status " + r.status_code + "\n")
+
+#------------------------------------------------------------------------------
+def is_institution(party_id = 8, vb = False, return_JSON = False):
+	
+	# Check parameters
+	if isinstance(party_id, list):
+		print("party_id must be single scalar value")
+		return('')
+	if not(isinstance(party_id, int)) or (party_id <= 0):
+		print("party_id must be an integer > 0")
+		return('')
+	if not(isinstance(vb, bool)):
+		print("vb must be Boolean")
+		return('')
+
+	party_url = "https://nyu.databrary.org/api/party/" + str(party_id)
+	
+	if (vb):
+		message(paste0("Sending GET to ", party_url))
+	r = requests.get(party_url)
+	if (r.status_code == 200):
+		if vb:
+			print("Success.")
+		if return_JSON:
+			return(r.text)
+		df = pandas.read_json(r.content, typ = 'series')
+		return('institution' in df.index)
+	else:
+		print("Download failed with HTTP status " + r.status_code + "\n")
+		return('')
+
+#------------------------------------------------------------------------------
+def is_person(party_id = 7, vb = False):
+	r = not(is_institution(party_id = party_id, vb = vb))
+	return(r)
