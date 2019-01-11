@@ -4,6 +4,7 @@
 import requests
 import pandas
 import keyring
+import io
 
 #-----------------------------------------------------------------------------
 def assign_constants(vb = False):
@@ -259,7 +260,7 @@ def download_party(party_id = 7, vb = False, return_JSON = False):
 	party_url = "https://nyu.databrary.org/api/party/" + str(party_id)
 	
 	if (vb):
-		message(paste0("Sending GET to ", party_url))
+		print("Sending GET to " + party_url)
 	r = requests.get(party_url)
 	if (r.status_code == 200):
 		if vb:
@@ -272,6 +273,55 @@ def download_party(party_id = 7, vb = False, return_JSON = False):
 	else:
 		print("Download failed with HTTP status " + r.status_code + "\n")
 		return('')
+
+#------------------------------------------------------------------------------
+def download_session_csv(vol_id = 1, to_df = True, return_response = False, vb = False):
+
+	# Parameter checking
+	if isinstance(vol_id, list):
+		stop("vol_id must have length 1.")
+	if not(isinstance(vol_id, int)) or (vol_id <= 0):
+		print("vol_id must be an integer > 0")
+		return('')
+	if not(isinstance(to_df, bool)):
+		print("vb must be Boolean")
+		return('')
+	if not(isinstance(return_response, bool)):
+		print("return_response must be Boolean")
+		return('')				
+	if not(isinstance(vb, bool)):
+		print("vb must be Boolean")
+		return('')
+
+	request_url = "https://nyu.databrary.org/volume/" + str(vol_id) + "/csv"
+	r = requests.get(request_url)
+	if (vb):
+		print("Sending GET to " + party_url)
+	if (r.status_code == 200):
+		if(to_df):
+			bytes_content = io.BytesIO(r.content)
+			df = pandas.read_csv(bytes_content)
+			return(df)
+		else:
+			return(r.content)
+	else:
+		print('Download Failed, HTTP status ' + r.status_code)
+		if (return_response):
+			return(r.status_code)
+
+#------------------------------------------------------------------------------
+def get_supported_file_types(vb = False):
+	"Extracts Databrary supported file types."
+
+	# Check parameters
+	if not(isinstance(vb, bool)):
+		print("vb must be Boolean")
+		return('')
+
+	c = assign_constants(vb = vb)
+	fts = c['format']
+	df = pandas.DataFrame.from_dict(fts)
+	return(df)
 
 #------------------------------------------------------------------------------
 def list_sessions_in_volume(vol_id = 1, vb = False):
@@ -301,18 +351,3 @@ def list_sessions_in_volume(vol_id = 1, vb = False):
 	else:
 		print("Download failed with HTTP status " + r.status_code + "\n")
 		return('')
-
-#------------------------------------------------------------------------------
-def get_supported_file_types(vb = False):
-	"Extracts Databrary supported file types."
-
-	# Check parameters
-	if not(isinstance(vb, bool)):
-		print("vb must be Boolean")
-		return('')
-
-	c = assign_constants(vb = vb)
-	fts = c['format']
-	df = pandas.DataFrame.from_dict(fts)
-	return(df)
-
