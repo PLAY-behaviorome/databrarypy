@@ -64,8 +64,10 @@ def get_db_stats(type = "all", vb = False):
 
 #-----------------------------------------------------------------------------
 # login to Databrary
+# TODO(ROG): Saving cookies!
 def login_db(username = '', vb = False, stored_credentials = False, system_credentials = True, return_resp = False):
 	"Log in to Databrary"
+
 
 	# Check parameters
 	if (not(isinstance(username, str))):
@@ -294,6 +296,7 @@ def download_session_csv(vol_id = 1, to_df = True, return_response = False, vb =
 		return('')
 
 	request_url = "https://nyu.databrary.org/volume/" + str(vol_id) + "/csv"
+	
 	r = requests.get(request_url)
 	if (vb):
 		print("Sending GET to " + party_url)
