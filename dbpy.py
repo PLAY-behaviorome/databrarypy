@@ -332,7 +332,7 @@ def list_sessions_in_volume(vol_id = 1, vb = False):
 
 	# Check parameters
 	if isinstance(vol_id, list):
-		print("party_id must be single scalar value")
+		print("vol_id must be single scalar value")
 		return('')
 	if not(isinstance(vol_id, int)) or (vol_id <= 0):
 		print("vol_id must be an integer > 0")
@@ -344,11 +344,79 @@ def list_sessions_in_volume(vol_id = 1, vb = False):
 	vol_url = "https://nyu.databrary.org/api/volume/" + str(vol_id)
 
 	if (vb):
-		message(paste0("Sending GET to ", vol_url))
+		print("Sending GET to ", vol_url)
 	r = requests.get(vol_url)
 	if (r.status_code == 200):
 		if vb:
 			print("Success.")
+		df = pandas.read_json(r.content, typ = 'series')
+		return(df)
+	else:
+		print("Download failed with HTTP status " + r.status_code + "\n")
+		return('')
+
+#------------------------------------------------------------------------------
+def download_containers_records(vol_id = 2, convert_JSON = True, vb = False):
+	""" Download data about the containers (sessions/slots) in a given volume"""
+	# Check parameters
+	if isinstance(vol_id, list):
+		stop("vol_id must be a single, scalar value.")
+	if not(isinstance(vol_id, int)) or (vol_id <= 0):
+		print("vol_id must be an integer > 0")
+		return('')
+	if not(isinstance(convert_JSON, bool)):
+		print("vb must be Boolean")
+		return('')
+	if not(isinstance(vb, bool)):
+		print("vb must be Boolean")
+		return('')
+
+	url_cont_rec = "https://nyu.databrary.org/api/volume/" + str(vol_id) + "?containers&records"
+	if (vb):
+		print("Sending GET to ", url_cont_rec)
+	r = requests.get(url_cont_rec)
+	if (r.status_code == 200):
+		if vb:
+			print("Success.")
+		if convert_JSON:
+			df = pandas.read_json(r.content, typ = 'series')
+			return(df)
+		else:
+			return(r.text)
+	else:
+		print("Download failed with HTTP status " + r.status_code + "\n")
+		return('')
+
+#------------------------------------------------------------------------------
+def get_asset_segment_range(vol_id = 1, session_id = 9807, asset_id = 1, vb = False):
+  
+  # Check parameters
+	if isinstance(vol_id, list):
+		stop("vol_id must be a single, scalar value.")
+	if not(isinstance(vol_id, int)) or (vol_id <= 0):
+		print("vol_id must be an integer > 0")
+		return('')
+	if isinstance(session_id, list):
+		stop("session_id must be a single, scalar value.")
+	if not(isinstance(session_id, int)) or (session_id <= 0):
+		print("session_id must be an integer > 0")
+		return('')
+	if isinstance(asset_id, list):
+		stop("asset_id must be a single, scalar value.")
+	if not(isinstance(asset_id, int)) or (asset_id <= 0):
+		print("asset_id must be an integer > 0")
+		return('')
+	if not(isinstance(vb, bool)):
+		print("vb must be Boolean")
+		return('')
+
+	url = "https://nyu.databrary.org/api/volume/" + str(vol_id) + "/slot/" + str(session_id) + "/asset/" + str(asset_id)
+	if (vb):
+		print("Sending GET to ", url)
+	r = requests.get(url)
+	if (r.status_code == 200):
+		if vb:
+			print("Success!")
 		df = pandas.read_json(r.content, typ = 'series')
 		return(df)
 	else:
